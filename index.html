@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geolocation-based Amenities</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #map-container { width: 80%; height: 500px; margin: auto; }
+        .checkbox-group { display: flex; flex-wrap: wrap; justify-content: center; }
+        .checkbox-group label { margin: 10px; cursor: pointer; }
+        #search-box { width: 300px; padding: 8px; }
+        #fetch-map { padding: 10px; background: blue; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Search for Amenities in Your Area</h1>
+    
+    <input type="text" id="search-box" placeholder="Enter location (e.g., Panvel)">
+    
+    <h3>Select Amenities:</h3>
+    <div class="checkbox-group">
+        {% for amenity in amenities %}
+            <label><input type="checkbox" value="{{ amenity }}"> {{ amenity }}</label>
+        {% endfor %}
+    </div>
+
+    <br>
+    <button id="fetch-map">Find Amenities</button>
+
+    <h3>Map:</h3>
+    <div id="map-container"></div>
+
+    <script>
+        $(document).ready(function () {
+            $("#fetch-map").click(function () {
+                var selectedAmenities = [];
+                $("input[type=checkbox]:checked").each(function () {
+                    selectedAmenities.push($(this).val());
+                });
+
+                var location = $("#search-box").val();
+                if (!location) {
+                    alert("Please enter a location!");
+                    return;
+                }
+
+                $.ajax({
+                    url: "/get_map",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ location: location, amenities: selectedAmenities }),
+                    success: function (response) {
+                        $("#map-container").html(response.map);
+                    },
+                    error: function (xhr) {
+                        alert(xhr.responseJSON.error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
